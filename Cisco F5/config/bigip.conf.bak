@@ -1,0 +1,13 @@
+# bigip.conf   Updated by the Setup Utility on Thu Mar 25 16:27:34 EST 2004
+
+
+# constants
+global open_ssh_port enable
+global open_corba_ports enable
+global webadmin_port 443
+
+
+
+# monitors
+node * monitor use icmp
+

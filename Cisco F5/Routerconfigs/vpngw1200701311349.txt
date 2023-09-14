@@ -1,0 +1,113 @@
+Current configuration : 2995 bytes                                  
+! 
+version 12.1            
+no service single-slot-reload-enable                                    
+service timestamps debug uptime                               
+service timestamps log uptime                             
+service password-encryption                           
+! 
+hostname VPNGW1               
+! 
+logging buffered 4096 errors                            
+enable password 7 10571B415404045B02                                    
+! 
+! 
+! 
+! 
+! 
+ip subnet-z          
+no ip domain-lookup                   
+! 
+! 
+! 
+crypto isakmp policy 5                      
+ encr 3des          
+ authentication pre-share                         
+ group 2        
+crypto isakmp key KU2ST96a$#b address 142.164.176.42                                                    
+crypto isakmp key T[@]1snOt$1nY0/a address 64.156.219.193                                                         
+! 
+! 
+crypto ipsec transform-set SASKTEL esp-3des esp-sha-hmac                                                        
+crypto ipsec transform-set KNIGHTRIDDER esp-3des esp-sha-hmac                                                             
+! 
+crypto map SASKT 10 ipsec-isakmp                                
+ set peer 142.164.176.42                        
+ set security-association lifetime seconds 86400                                                
+ set transform-set SASKTEL                          
+ set pfs group2               
+ match address 101                  
+crypto map SASKT 11 ips                     
+ set peer 64.156.219.193                        
+ set security-association lifetime seconds 86400                                                
+ set transform-set KNIGHTRIDDER                               
+ set pfs group2               
+ match address 102                  
+! 
+! 
+! 
+! 
+! 
+! 
+interface Ethernet0/0                     
+ description connected to VPN VLAN                                  
+ ip address 1.1.65.1 255.255.255.0                                  
+! 
+interface Ethernet1/0                     
+ description connected to Internet                                  
+ ip address 209.112.4.241 255.255.255.0                                       
+ crypto map SASKT                 
+! 
+ip classless            
+ip route 0.0.0.0 0.0.0.0 209.112.4.1                                    
+ip route 10.229.66.228 255.255.255.255 Ethernet1/0                                                  
+ip route 192.168.188.224 255.255.255.240 Ethernet1/0                                                    
+ip route 209.112.4.0 255.255.255.0 Ethernet1/0 permanent                                                        
+no ip http server                 
+! 
+logging history size 500                        
+logging history errors                      
+access-list 101 permit ip 1.1.65.0 0.0.0.255 192.168.188.224 0.0.0.15                                                                     
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.207.15                                                                
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.2.50                                                              
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.2.51                                                              
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.2.14                                                              
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.7.105                                                               
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.7.104                                                               
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.7.69                                                              
+access-list 101 permit ip 1.1.65.0 0.0.0.255 host 142.164.7.68                                                              
+access-list 102 permit ip 1.1.65.0 0.0.0.255 host 166.108.225.4                                                               
+access-list 102 permit ip 1.1.65.0 0.0.0.255 host 10.229.66.228                                                               
+access-list 199 remark VTY Access-class list                                            
+access-list 199 permit ip 216.137.168.0 0.0.0.255 any                                                     
+access-list 199 permit ip 209.112.4.0 0.0.0.255 any                                                   
+access-list 199 deny   ip any any                                 
+access-list 199 remark VTY Access-class listpply 2 failed                               
+snmp-server community kubrasnmp RO 08 13:40:05 %SYS-2-PS_OK:Power su
+snmp-server location Missisauga                               
+snmp-server contact Network Services Group,905-624-2220 x261,support@kubra.com                                     
+2006 Aug 08 13:40:05 %SYS-2-PS_OK:Power 
+!p
+banner motd ^C======================================================Aug 08 13:40
+       ACCESS TO THIS DEVICE IS LOGGED AND MONITORED
+
+       ALL UN-AUTHORISED ACCESS ATTEMPTS WILL BE
+
+       RECORDED AND PROSECUTED TO THE FULL EXTENT
+
+       OF THE LAW.
+
+======================================================
+^C
+!
+line con 0
+ exec-timeout 0 0
+ password 7 131019340A18207A7B20
+ login
+line aux 0
+line vty 0 4
+ access-class 199 in
+ password 7 0311552D071B051C1E0D
+ login
+!
+end

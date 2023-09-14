@@ -1,0 +1,5 @@
+2005-04-14 2:14 PM EST Salman
+
+* Disabled checking of (SORBS-SPAM, DSBL, SBL+XBL) RBL's from MailScanner
+* Added above RBL's to spamassassin
+* configured MailScanner to always include spamscore report in the header.

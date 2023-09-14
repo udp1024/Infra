@@ -1,0 +1,24 @@
+# interfaces
+
+# vlans
+vlan external {
+   tag 4094
+   port_lockdown enable
+   interfaces add 5.1 
+}
+vlan internal {
+   tag 4093
+   interfaces add 4.1 
+}
+
+# vlan groups
+
+# self IP addresses
+self 209.112.4.6 {
+   vlan external
+   netmask 255.255.255.0
+   broadcast 209.112.4.255
+}
+
+
+#  globals

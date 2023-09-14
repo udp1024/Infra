@@ -1,0 +1,566 @@
+# 
+# Example monitors and their use
+#
+# These monitors may be entered at the command line or
+# edited into the /config/bigip.conf file.  They may
+# also be entered in the configuration utility.
+# Please note that when entering the monitors at the 
+# command line, enclose the braces and everything between
+# the braces with single quotes.
+#
+# The usage line is the command line that will associate
+# a node with a monitor.  This can also be entered in
+# /config/bigip.conf minus the "bigpipe".  One may also
+# associate a node with a monitor in the configuration
+# utility.
+#
+# Two useful commands to see what you've done:
+#
+#   bigpipe monitor <name> show
+#   example: bigpipe monitor https show
+#
+#   bigpipe node monitor show
+#
+
+#
+# What: Simple tcp connection
+# Usage: bigpipe node 158.20.10.50:25 monitor use smtp_ck
+# Does: Makes a connection to the server's port 25 (the smtp
+#       service) gets the smtp greeting line, sends a quit.
+#       Operation is correct if it receives the chars 
+#       "closing connection" somewhere in the smtp response.
+#       Note that interval, timeout and dest are inherited from
+#       the "use" tcp monitor.
+#
+monitor smtp_ck { 
+        use tcp 
+        send "QUIT"
+        recv "closing connection"
+}
+
+#
+# What: Change the default interval and timeout
+# Usage: bigpipe node 158.20.10.50:25 monitor use long_smtp_ck
+# Does: Same as the smtp_ck monitor above except checks less 
+#       frequently.
+#
+monitor long_smtp_ck { 
+        use tcp 
+        interval 15
+        timeout 46
+        send "QUIT"
+        recv "closing connection"
+}
+
+#
+# What: Get a file from the http server
+# Usage: bigpipe node 158.20.10.50:80 monitor use easy_http
+# Does: Retrieves the file "id.html from the server.  Considers
+#       the service up if the string "server" is in the response.
+#
+monitor easy_http {
+   use http
+   send "GET /id.html"
+   recv "server"
+}
+
+#
+# What: Get a file from the http server
+# Usage: bigpipe node 158.20.10.50:80 monitor use simple_http
+# Does: Same as easy_http above except uses the key word "get"
+#       instead of "send".
+#
+# NOTE: The keyword/value 'get "/id.html"' is automatically 
+#       converted to 'send "GET /id.html"' when the monitor 
+#       is created.
+#
+monitor simple_http {
+   use http
+   get "/id.html"
+   recv "server"
+}
+
+#
+# What: Make a reverse check for a server file
+# Usage: bigpipe node 158.20.10.50:80 monitor use rev_http
+# Does: If the file is *not* found on the server and the
+#       string "404" is returned, mark the server down.
+#       That is, if the response matches the receive string,
+#       mark the server down.
+#
+monitor rev_http {
+   use http
+   send "GET /not_here.html"
+   recv "404"
+   reverse
+}
+
+#
+# What: Test http server using username and password
+# Usage: bigpipe node 158.20.10.50:80 monitor use my_http
+# Does: Retrieves the file "id.html" from the server. 
+#       Verifies that it contains the chars "server".
+#
+# Note: Including the username and password values cause
+#       actual the send string to look like this:
+# send "GET /id.html\nHTTP/1.0\nAuthorization: Basic amF5YjpmdXp6aGVhZA==\n"
+#       If the user entered his/her own HTTP version in the
+#       send string (ie HTTP/1.1) the monitor code will
+#       not add the "HTTP/1.0" portion.
+#
+monitor my_http {
+        use http
+        send "GET /id.html"
+        recv "server"
+        username "jayb"
+        password "fuzzhead"
+}
+
+#
+# What: Test the node through which this request must pass.
+# Usage: bigpipe node 158.20.10.1:0 monitor use x_url_http
+# Does: Retrieves the file "id.html" from the server routing
+#       the request through 158.20.10.1.  If there is no response
+#       or the response does not contain "server", mark the
+#       node 158.20.10.1 down.
+#
+# Note: The familiar "http://www.foo.com/" syntax may also be
+#       used as long as the system may resolve the address via
+#       the /etc/hosts file or via a DNS server to which the
+#       system has access.  Essentially, the url is used to
+#       determine the monitor's dest_addr and send string.
+#
+monitor x_url_http {
+        use http
+        url "http://158.20.10.2/id.html"
+        recv "server"
+        transparent
+}
+
+#
+# What: Transparent node check
+# Usage: bigpipe node 158.20.10.1 monitor use x_echo
+# Does: Pings through node 158.20.10.1 to node 158.20.10.2.
+#       If there is no response, mark node 158.20.10.1 down.
+#
+monitor x_echo {
+        use tcp_echo 
+        dest 158.20.10.2  
+        transparent
+}
+
+#
+# What: Test the secure server using SSL
+# Usage: bigpipe node 158.20.10.50:443 monitor use secure_mon
+# Does: Retrieves the file "id.html" from the secure server.
+#       Marks the server down if the string "server" is not
+#       contained in the response.
+#
+monitor secure_mon {
+        use https
+        send "GET /id.html"
+        recv "server"
+}
+
+#
+# What: Test the secure server using SSL
+# Usage: bigpipe node 158.20.10.50:443 monitor use get_secure_mon
+# Does: Retrieves the file "id.html" from the secure server.
+#       Marks the server down if the string "server" is not
+#       contained in the response.
+#
+# Note: This is the same as the secure_mon above except that
+#       the keyword "get" is used rather than the keyword "send".
+#       "get" here causes the automatic conversion from
+#       'get "/id.html"' to 'send "GET /id.html"'
+#
+monitor get_secure_mon {
+        use https
+        get "/id.html"
+        recv "server"
+}
+
+#
+# What: Test the secure server using SSL supplying
+#       a username and password.
+# Usage: bigpipe node 158.20.10.50:443 monitor use passwd_smon 
+# Does: Retrieves the file "id.html" from the secure server.
+#       Marks the server down if the string "server" is not
+#       contained in the response.
+#
+# Note: Including the username and password values cause the
+#       actual send string to look like this:
+# send "GET /id.html\nHTTP/1.0\nAuthorization: Basic amF5YjpmdXp6aGVhZA==\n"
+#       If the user entered his/her own HTTP version in the
+#       send string (ie HTTP/1.1) the monitor code will
+#       not add the "HTTP/1.0" portion.
+#
+monitor passwd_smon {
+        use https
+        send "GET /id.html"
+        recv "server"
+        username "jayb"
+        password "fuzzhead"
+}
+
+#
+# What: An example of an external monitor.
+# Usage: bigpipe node 158.20.10.50:23 monitor use arg_ex
+# Does: This monitor demonstrates passing arguments to
+#       an external monitor.  This can be done via the command
+#       line or via the environment (environment is preferred).  
+#       The target program may be viewed at 
+#       /usr/local/lib/pingers/arg_example.  The program outputs
+#       its command line args and its environment to the file
+#       /var/arg_ex_out.  Use "tail -f /var/arg_ex_out" to view
+#       in real time.
+#
+monitor arg_ex {
+        use external
+        run "arg_example"
+        args "cmd_line_arg1 cmd_line_arg2"
+        FIRST_EARG "Here is the first one"
+        EARG2 "Here is the second"
+        YOUR_EARG "Here is one for you"
+        EARG_MINE "And this is for me"
+}
+
+#
+# What: Get a file from the ftp server
+# Usage: bigpipe node 158.20.10.100:21 monitor use try_ftp
+# Does: Retrieves the named file from the ftp server.
+#
+# Note: File must exist, always use the full path to the file.
+#       If a specific user and password are used the user must
+#       have an account and permissions to retrieve the named
+#       file.
+#
+monitor try_ftp {
+        use ftp
+        username "anonymous"
+        password "user@company.com"
+        get "/README"
+}
+
+#
+# What: Verify that the pop3 server is responding.
+# Usage: bigpipe node 158.20.10.50:110 monitor use try_pop3
+# Does: Logs into the pop3 server, retrieves the number of
+#       messages in the user's mailbox.
+#
+# Note: The username and password must be valid.
+#
+monitor try_pop3 {
+        use pop3
+        username "jayb"
+        password "whatsnew"
+}
+
+#
+# What: Shake hands with the smtp server
+# Usage: bigpipe node 158.20.10.50:25 monitor use try_smtp
+# Does: Makes a connection to the smtp server, sends the
+#       domain name, verifies a response.
+#
+monitor try_smtp { 
+        use smtp
+        domain "example.com"
+}
+
+#
+# What: Test for a response from the imap server.
+# Usage: bigpipe node 158.20.10.50:143 monitor use try_imap
+# Does: Logs into the imap server retrieves the number of messages
+#       in the specified folder.
+#
+monitor try_imap { 
+        use imap
+        username "jayb"
+        password "whatever"
+        folder "INBOX"
+#optional   message_num "1234"
+}
+
+# 
+# What: An example of using the real_server performance monitor.
+# Usage: bigpipe node 158.20.10.50 monitor use icmp and real_server
+# Does: Uses the icmp monitor to determine the up/down
+#       status of the node address.  Uses the real_server
+#       monitor to retrieve data that can be used for 
+#       dynamic ratio load balancing.
+#
+# Note: The real_server monitor always returns "up" or "true" so
+#       by and'ing the real_server monitor with the icmp monitor
+#       we cause the "up" or "down" of the node address to depend
+#       on the results of the icmp ping monitor.  
+#       The real_server monitor is used
+#       to retrieve performance data from the server that is
+#       used for load balancing.  The real_server monitor is one
+#       of the few monitors that can be used "as is", without
+#       customization to the user's environment.
+#       Information about the real_server monitor can be seen by 
+#       issuing the command:
+#       "bigpipe monitor real_server show".  For further information
+#       about load balancing using performance monitors, see
+#       the system documentation.
+#
+
+# 
+# What: An example of using the snmp performance monitor.
+# Usage: bigpipe node 158.20.10.50 monitor use icmp and snmp_dca
+# Does: Uses the icmp monitor to determine the up/down
+#       status of the node address.  Uses the snmp_dca
+#       monitor to retrieve data that can be used for 
+#       dynamic ratio load balancing.
+#
+# Note: The snmp_dca monitor always returns "up" or "true" so
+#       by and'ing the snmp_dca monitor with the icmp monitor
+#       we cause the "up" or "down" of the node address to depend
+#       on the results of the icmp ping monitor.  
+#       The snmp_dca monitor is used
+#       to retrieve performance data from the server that is
+#       used for load balancing.  The snmp_dca monitor is one
+#       of the few monitors that can be used "as is", without
+#       customization to the user's environment.
+#       Information about the snmp_dca monitor can be seen by 
+#       issuing the command:
+#       "bigpipe monitor snmp_dca show".  
+#       The snmp_dca monitor can be extended to gather additional
+#       SNMP data for inclusion in its load balancing weight.
+#       It is very flexible and powerful.  For further information
+#       about load balancing using performance monitors, see
+#       the system documentation.
+#
+
+# 
+# What: An example of using the snmp base performance monitor.
+# Usage: bigpipe node 158.20.10.50 monitor use icmp and try_snmp_dca_base
+# Does: Uses the icmp monitor to determine the up/down
+#       status of the node address.  Uses the snmp_dca_base
+#       monitor to retrieve available memory data that is used for 
+#       dynamic ratio load balancing.
+#
+# Note: The snmp_dca_base monitor always returns "up" or "true" so
+#       by and'ing the snmp_dca_base monitor with the icmp monitor
+#       we cause the "up" or "down" of the node address to depend
+#       on the results of the icmp ping monitor.  
+#       The snmp_dca_base monitor is used
+#       to retrieve performance data from the server that is
+#       used for load balancing to that server.
+#
+#       Unlike the snmp_dca monitor, the snmp_dca_base monitor has
+#       no built in values to monitor.  It is meant to be used so
+#       that only the values a user wants to monitor are included
+#       in calculating the weight for dynamic ratio load balancing.
+#
+#       Information about the snmp_dca_base monitor can be seen by 
+#       issuing the command:
+#       "bigpipe monitor snmp_dca_base show".  
+#
+#       For further information about load balancing using 
+#       performance monitors, see the system documentation.
+# 
+monitor try_snmp_dca_base {
+   use snmp_dca_base
+   availablemem ".1.3.6.1.4.1.2021.4.6.0"
+   availablemem_coefficient "2"
+   availablemem_threshold "20000"
+}
+
+
+# What: An example of using the wmi performance monitor.
+# Usage: bigpipe node 158.20.10.1 158.20.10.2 monitor use icmp and u_pass_wmi
+# Does: Uses the icmp monitor to determine the up/down
+#       status of the node address.  Uses the u_pass_wmi
+#       monitor to retrieve data that can be used for 
+#       dynamic ratio load balancing.
+#
+# Note: The wmi monitor always returns "up" or "true" so
+#       by and'ing the wmi monitor with the icmp monitor
+#       we cause the "up" or "down" of the node address to depend
+#       on the results of the icmp ping monitor.  
+#       The wmi monitor is used
+#       to retrieve performance data from the server that is
+#       used for load balancing.  Information about the wmi
+#       monitor can be seen by issuing the command:
+#       "bigpipe monitor wmi show".  For further information
+#       about load balancing using performance monitors, see
+#       the system documentation.
+#
+monitor u_pass_wmi {
+   use wmi
+   username "fred"
+   password "fredspasswd"
+}
+
+#
+# What: An advanced example.  The http server is not considered
+#       up unless both the http server and the https server are
+#       responding.
+# Usage: bigpipe node 158.20.10.50:80 monitor use web_test and shop_cart
+# Does: Retrieve the file "index.html" from the normal web server
+#       (on port 80) and look for the string "HTML".  The service is
+#       not considered up unless the monitor checking port 443 is
+#       successful retrieving the file "id.html" and finding the
+#       string "server".
+#
+# Note: The "dest" in web_test, inherited from http is "*:*".
+#       This causes the monitor to send its request to
+#       158.20.10.50:80.  The "dest" in shop_cart, inherited
+#       from https_443, is "*:443".  this causes this monitor
+#       send its request to 158.20.10.50:443.
+#
+monitor web_test {
+   use http
+   send "GET /index.html"
+   recv "HTML"
+}
+monitor shop_cart {
+   use https_443
+   send "GET /id.html"
+   recv "server"
+}
+
+#
+# Same as the example above except the https server is on
+# a different server from the http server.
+#
+# What: An advanced example.  The http server is not considered
+#       up unless both the http server and the https server are
+#       responding.
+# Usage: bigpipe node 158.20.10.50:80 monitor use web_test and a_shop_cart
+# Does: Retrieve the file "index.html" from the normal web server
+#       (on port 80) and look for the string "HTML".  The service is
+#       not considered up unless the monitor checking 158.20.10.100:443 is
+#       successful retrieving the file "id.html" and finding the
+#       string "server".
+#
+# Note: The "dest" in web_test, inherited from http is "*:*".
+#       This causes the monitor to send its request to
+#       158.20.10.50:80.  The "dest" in a_shop_cart is
+#       158.20.10.100:443 as specified there.
+#
+monitor web_test {
+   use http
+   send "GET /index.html"
+   recv "HTML"
+}
+monitor a_shop_cart {
+   use https
+   dest 158.20.10.100:443
+   send "GET /id.html"
+   recv "server"
+}
+
+#
+# What: Make a request to the radius server
+# Usage: bigpipe node 158.20.10.3:1645 monitor use try_radius
+# Does: Requests that the user/password be accepted by the
+#       RADIUS server using the given secret.  The server
+#       is marked up if the request is accepted, marked
+#       down otherwise.
+#
+# Note: On the Cistron server against this was tested,
+#       an entry was made in the "clients" file with the
+#       BIG-IP's IP address and the secret "testing123".
+#       In the "users" file and entry was made for "jay"
+#       with the password "testing".
+#       Also, the /etc/services file used on the radius
+#       server's machine uses a port of 1645.  The RFC 2138
+#       also mentions port 1812.
+#
+monitor try_radius {
+   use radius
+   username "jay"
+   password "testing"
+   secret "testing123"
+}
+
+#
+# What: Make a request to the LDAP server
+# Usage: bigpipe node 158.20.10.3:389 monitor use try_ldap
+# Does: Binds to the LDAP server using the distinguished
+#       name ("username") and password.  Searches from
+#       "base" using "filter".  Prints number of attributes
+#       found which may be zero.  Finding zero attributes is
+#       considered ok.  A connect, bind or search error is
+#       considered bad and the node is marked down.
+#
+monitor try_ldap {
+   use ldap
+   username "cn=Manager,dc=bigip-test,dc=net"
+   password "secret"
+   base "dc=bigip-test,dc=net"
+   filter "(objectclass=*)"
+}
+
+#
+# What: Get the indicated newsgroup from the news server
+# Usage: bigpipe node 158.20.10.3:119 monitor use try_nntp
+# Does: Makes a connection to the news server.  Logs in
+#       with the given name and password.  Retrieves the
+#       specified newsgroup.
+#
+monitor try_nntp { 
+   use nntp 
+   username "jayb" 
+   password "fuzzy" 
+   newsgroup "junk" 
+}
+
+# SQL MONITOR EXAMPLE TO BE ADDED
+
+# Associating nodes with monitors
+
+# The above "usage" lines show one node being associated
+# with a monitor at a time.  In reality you may associate
+# any number of nodes with this monitor in a single 
+# statement, for example the command:
+#
+# bigpipe node 10.10.10.1:25 10.10.10.2:25 10.10.10.3:25
+#  monitor use smtp_ck 
+#
+# creates three monitor instances one to ping each address.
+#
+
+#
+# What: Associate all node addresses with the icmp ping monitor
+# Usage: bigpipe node '*' monitor use icmp
+# Does: For each node address (an IP address as opposed to an
+#       IP address and port) that BIG-IP knows about, mark the
+#       node address up or down based on its response to an
+#       ICMP ping.  If a node address is added to the system,
+#       it will automatically be pinged by this monitor.
+#
+# Note: This is BIG-IP's default node address monitor.  The above
+#       usage line can be seen in /config/bigip.conf.
+#       The single quotes surrounding the "star" wildcard
+#       would be required when entering this command on the
+#       command line to prevent shell attempts to interpret
+#       the "star" which is also a shell meta character.
+#       The single quotes are not necessary when this line
+#       is entered in the bigip.conf file.
+#
+
+#
+# What: Associate all http servers in the system with an http
+#       monitor.
+# Usage: bigpipe node '*:80' monitor use easy_http
+# Does: Associates the easy_http monitor with every node which
+#       has a known port 80.  The monitor retrieves the file 
+#       "id.html from the server.  Considers the node up if 
+#       the string "server" is in the response.
+#
+# Note: The single quotes surrounding the "star:80" string
+#       would be required when entering this command on the
+#       command line to prevent shell attempts to interpret
+#       the "star" which is also a shell meta character.
+#       The single quotes are not necessary were this line
+#       to be entered in the bigip.conf file.
+#
+monitor easy_http {
+   use http
+   send "GET /id.html"
+   recv "server"
+}
+

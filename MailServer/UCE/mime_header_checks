@@ -1,0 +1,24 @@
+# This is the mime_header_checks filter file for mail.securitysage.com, published by SecuritySage Inc.
+# This filter is the work of Jeffrey Posluns <jeff@posluns.com>
+
+# For the latest access file, please see http://www.securitysage.com/files/access
+# For the latest body_checks file, please see http://www.securitysage.com/files/body_checks
+# For the latest header_checks file, please see http://www.securitysage.com/files/header_checks
+# For a sample main.cf file to make use of these filters, please see http://www.securitysage.com/files/main.cf
+# For more information about UCE/spam and how to stop it, please see http://www.securitysage.com/guides/postfix_uce.html
+
+# UPDATING: These filters are updated regularly (sometimes weekly, often daily). We recommend that you set a cron job to automatically   
+#           download updates daily. Note that major updates are usually passed through our change control process at 02:00 and 14:00.
+#           If you would like to receive notifications of major updates to this file, please email spam@securitysage.com
+#           If you would like us to push an update of this file to your server whenever one is available, please email support@securitysage.com
+
+# Please feel free to copy, use, discuss, link to, or modify this file in compliance with the rules below:
+#  1. These filters (or portions thereof) may not be sold or included in a package (software or otherwise) for which fees are charged.
+#  2. If you wish to sell or include these filters as part of a package for which fees are charged, please contact us to arrange for a redistribution license.
+#  3. Leave this header information intact.
+#  4. Do not change the SPAM-ID numbers. We use these numbers to help track false rejections.
+#  5. if you modify this file, indicate such on the line below, so that people can be aware that the filter is not an original version.
+
+# This will filter our certain types of attachments that can be considered dangerous.
+/name=[^>]*\.(ade|adp|asd|bas|bat|chm|cmd|com|cpl|crt|dbx|dll|exe|hlp|hta|inf|ins|isp|lnk|js|jse|lnk|ocx|mde|mdt|mdw|msc|msi|msp|mst|nws|ops|pcd|pi|pif|prf|reg|scf|scr|sct|shb|shm|shs|swf|uue|vb|vbe|vbs|vbx|vxd|wab|wsc|wsf|wsh)/ REJECT Potentially dangerous file attachment - Please see http://www.securitysage.com/spam.html
+/name=[^>]*your_details.zip/ REJECT SecuritySage mail filters have determined that your email appears to be infected with the Sobig virus. Please see http://securityresponse.symantec.com/avcenter/venc/data/w32.sobig.e@mm.html for information about the virus. For information about SecuritySage spam filters, please see http://www.securitysage.com/spam.html

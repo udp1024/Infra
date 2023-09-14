@@ -1,0 +1,72 @@
+# last updated April 4, 2004 2:49 pm salman
+# this script blackholes known spammers and attackers on TCP/IP level.
+# add these entries to /etc/rc.d/rc.local script
+
+route add -net 61.84.0.0/16 reject
+
+route add -net 221.0.0.0/8 reject
+
+route add -net 211.0.0.0/8 reject
+
+route add -net 61.79.0.0/16 reject
+
+route add -net 66.63.172.0/22 reject
+route add -net 218.106.0.0/16 reject
+route add -net 80.109.0.0/16 reject
+route add -net 201.1.0.0/16 reject
+route add -net 213.13.0.0/16 reject
+route add -net 81.0.0.0/8 reject
+route add -net 221.0.0.0/8 reject
+
+route add -net 200.0.0.0/8 reject
+
+route add -net 213.158.186.0/24 reject
+
+route add -net 220.0.0.0/8 reject
+
+route add -net 222.170.0.0/16 reject
+route add -net 222.171.0.0/16 reject
+route add -net 222.172.0.0/16 reject
+route add -net 218.144.0.0/12 reject
+route add -net 210.0.0.0/8 reject
+
+route add -net 82.49.135.0/24 reject
+route add -net 66.17.206.0/23 reject
+route add -net 220.168.238.0/24 reject
+route add -net 201.13.120.0/24 reject
+
+# Brilliant Marketting IP Block
+route add -net 163.125.0.0/16 reject
+
+# Cvision Marketting
+route add -net 209.203.207.0/24 reject
+
+#Brazilian Spammer
+route add -net 201.12.178.0/23 reject
+route add -net 200.122.32.0/19 reject
+route add -net 201.19.0.0/16 reject
+route add -net 200.113.0.0/16 reject
+
+#France Cable Internet
+route add -net 87.88.0.0/14 reject
+
+#Spanish Spammers
+route add -net 213.37.0.0/17 reject
+
+#Polish ADSL Network NEOSTRADA-ADSL
+route add -net 83.29.0.0/16 reject
+route add -net 83.0.0.0/8 reject
+#Polish Cable TV Network
+route add -net 84.205.192.0/19 reject
+
+#lyris.net opt in direct marketting
+route add -net 64.62.197.0/24 reject
+
+#timelyshop.net
+route add -net 207.71.31.0/24 reject
+
+#TekMailer.com and TT03.com
+route add -net 69.6.0.0/18 reject
+
+#Austria BroadBand Network
+route add -net 87.207.0.0/16 reject

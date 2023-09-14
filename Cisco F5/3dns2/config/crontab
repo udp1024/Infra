@@ -1,0 +1,18 @@
+# Crontab file; see cron(8) for more information.
+#
+#	BSDI	crontab,v 2.5 1996/11/25 22:49:40 polk Exp
+#	@(#)crontab	8.1 (Berkeley) 6/9/93
+
+SHELL=/bin/sh
+MAILTO=""
+
+*/2 * * * *	root /usr/local/bin/system_check -q
+0,15,30,45 * * * *	root /usr/bin/at
+10 3 * * *	root /bin/sh /etc/daily 2>&1 | tee /var/log/daily.out | if [ -f /etc/sendmail.cf ]; then /usr/sbin/sendmail root; else /bin/cat; fi
+10 4 * * 6	root /bin/sh /etc/weekly 2>&1 | tee /var/log/weekly.out | if [ -f /etc/sendmail.cf ]; then /usr/sbin/sendmail root; else /bin/cat; fi
+20 4 1 * *	root /bin/sh /etc/monthly 2>&1 | tee /var/log/monthly.out | if [ -f /etc/sendmail.cf ]; then /usr/sbin/sendmail root; else /bin/cat; fi
+
+# sendmail ( dequeueing )
+#
+#0,15,30,45 * * * *	root /usr/sbin/sendmail -q > /dev/null 2>&1
+

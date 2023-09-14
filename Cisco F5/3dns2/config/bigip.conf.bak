@@ -1,0 +1,12 @@
+global open_telnet_port disable
+global ipforwarding disable
+
+# constants
+global open_ssh_port enable
+global open_corba_ports disable
+global webadmin_port 443
+
+
+
+# monitors
+
